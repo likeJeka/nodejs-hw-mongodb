@@ -1,12 +1,11 @@
 import Contact from '../models/contactModel.js';
 
-// Контроллер для получения всех контактов
 export const getContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find();  // Получаем все контакты из базы данных
+    const contacts = await Contact.find();
     res.status(200).json({
       status: 200,
-      message: "Successfully found contacts!",
+      message: 'Successfully found contacts!',
       data: contacts,
     });
   } catch (error) {
@@ -17,15 +16,14 @@ export const getContacts = async (req, res) => {
   }
 };
 
-// Контроллер для получения одного контакта по ID
 export const getContactById = async (req, res) => {
   try {
-    const { contactId } = req.params;  // Получаем contactId из параметров запроса
+    const { contactId } = req.params;
 
-    const contact = await Contact.findById(contactId);  // Ищем контакт по ID
+    const contact = await Contact.findById(contactId);
 
     if (!contact) {
-      return res.status(404).json({ message: 'Contact not found' });  // Если контакт не найден
+      return res.status(404).json({ message: 'Contact not found' });
     }
 
     res.status(200).json({

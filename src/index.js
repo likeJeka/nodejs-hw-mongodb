@@ -4,9 +4,11 @@ import initMongoConnection from './db/initMongoConnection.js';
 
 dotenv.config();
 
-initMongoConnection().then(() => {
-  setupServer();  // Запуск сервера
-}).catch((error) => {
-  console.error('Initialization failed:', error);
-  process.exit(1);
-});
+initMongoConnection()
+  .then(() => {
+    setupServer();
+  })
+  .catch((error) => {
+    console.error('Initialization failed:', error);
+    process.exit(1);
+  });

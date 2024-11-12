@@ -13,7 +13,7 @@ const contactSchema = new mongoose.Schema(
       default: 'personal',
     },
   },
-  { timestamps: true } // автоматически создаст поля createdAt и updatedAt
+  { timestamps: true },
 );
 
 const Contact = mongoose.model('Contact', contactSchema);
