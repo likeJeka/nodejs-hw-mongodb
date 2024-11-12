@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import pino from 'pino';
-import contactRoutes from './routes/contactRoutes.js';
+import contactRoutes from './routes/contactRoutes.js'; // Импортируем маршруты
 
 const logger = pino();
 
@@ -12,8 +12,9 @@ export const setupServer = () => {
   app.use(cors());
   app.use(express.json());
 
-  app.use('/api', contactRoutes);
+  app.use('/api', contactRoutes); // Регистрация маршрута для контактов
 
+  // Простая проверка маршрута
   app.get('/', (req, res) => {
     res.send('Server is running...');
   });
