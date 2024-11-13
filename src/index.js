@@ -2,14 +2,14 @@ import dotenv from 'dotenv';
 import { setupServer } from './server.js';
 import initMongoConnection from './db/initMongoConnection.js';
 
-dotenv.config(); // Загружаем переменные окружения
+dotenv.config();
 
 (async () => {
   try {
-    await initMongoConnection(); // Подключаемся к MongoDB перед запуском сервера
-    setupServer(); // Запуск сервера
+    await initMongoConnection();
+    setupServer();
   } catch (error) {
     console.error('Initialization failed:', error);
-    process.exit(1); // Завершаем приложение при ошибке
+    process.exit(1);
   }
 })();
