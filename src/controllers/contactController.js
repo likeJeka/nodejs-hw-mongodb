@@ -21,6 +21,7 @@ export const getContacts = async (req, res, next) => {
     const totalItems = await Contact.countDocuments(filter);
     const totalPages = Math.ceil(totalItems / perPage);
     const contacts = await Contact.find(filter)
+      .select('-__v') // Убираем поле __v
       .skip((page - 1) * perPage)
       .limit(perPage)
       .sort({ [sortBy]: sortOrder });
@@ -46,15 +47,13 @@ export const getContacts = async (req, res, next) => {
 export const getContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contact = await Contact.findById(contactId);
+    const contact = await Contact.findById(contactId).select('-__v');
     if (!contact) throw createError(404, 'Contact not found');
-    res
-      .status(200)
-      .json({
-        status: 200,
-        message: `Successfully found contact with id ${contactId}!`,
-        data: contact,
-      });
+    res.status(200).json({
+      status: 200,
+      message: `Successfully found contact with id ${contactId}!`,
+      data: contact,
+    });
   } catch (error) {
     next(error);
   }
@@ -70,10 +69,11 @@ export const createContact = async (req, res, next) => {
       isFavourite,
       contactType,
     });
+    const newContact = await Contact.findById(contact._id).select('-__v');
     res.status(201).json({
       status: 201,
       message: 'Successfully created a contact!',
-      data: contact,
+      data: newContact,
     });
   } catch (error) {
     next(error);
@@ -86,10 +86,11 @@ export const updateContactById = async (req, res, next) => {
     const updatedData = req.body;
     const contact = await updateContact(contactId, updatedData);
     if (!contact) throw createError(404, 'Contact not found');
+    const updatedContact = await Contact.findById(contactId).select('-__v');
     res.status(200).json({
       status: 200,
       message: 'Successfully patched a contact!',
-      data: contact,
+      data: updatedContact,
     });
   } catch (error) {
     next(error);
