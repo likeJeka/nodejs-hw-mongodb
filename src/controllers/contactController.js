@@ -8,7 +8,7 @@ import {
 
 export const getContacts = async (req, res, next) => {
   try {
-    const contacts = await Contact.find();
+    const contacts = await Contact.find().select('-__v');
     res.status(200).json({
       status: 200,
       message: 'Successfully found contacts!',
@@ -22,7 +22,7 @@ export const getContacts = async (req, res, next) => {
 export const getContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contact = await Contact.findById(contactId);
+    const contact = await Contact.findById(contactId).select('-__v');
     if (!contact) throw createError(404, 'Contact not found');
     res.status(200).json({
       status: 200,
@@ -44,10 +44,11 @@ export const createContact = async (req, res, next) => {
       isFavourite,
       contactType,
     });
+    const newContact = await Contact.findById(contact._id).select('-__v');
     res.status(201).json({
       status: 201,
       message: 'Successfully created a contact!',
-      data: contact,
+      data: newContact,
     });
   } catch (error) {
     next(error);
@@ -60,10 +61,11 @@ export const updateContactById = async (req, res, next) => {
     const updatedData = req.body;
     const contact = await updateContact(contactId, updatedData);
     if (!contact) throw createError(404, 'Contact not found');
+    const updatedContact = await Contact.findById(contactId).select('-__v');
     res.status(200).json({
       status: 200,
       message: 'Successfully patched a contact!',
-      data: contact,
+      data: updatedContact,
     });
   } catch (error) {
     next(error);

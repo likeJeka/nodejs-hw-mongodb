@@ -21,7 +21,6 @@ export const setupServer = () => {
   });
 
   app.use(notFoundHandler);
-
   app.use(errorHandler);
 
   app.listen(port, () => {
