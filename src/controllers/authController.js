@@ -29,12 +29,12 @@ export const login = async (req, res, next) => {
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
       status: 200,
-      message: 'Successfully logged in an user!',
+      message: 'Successfully logged in a user!',
       data: {
         accessToken,
       },
