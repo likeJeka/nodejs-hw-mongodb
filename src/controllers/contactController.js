@@ -62,13 +62,17 @@ export const getContactById = async (req, res, next) => {
 export const createContact = async (req, res, next) => {
   try {
     const { name, phoneNumber, email, isFavourite, contactType } = req.body;
+    const photo = req.file ? req.file.path : null;
+
     const contact = await addContact({
       name,
       phoneNumber,
       email,
       isFavourite,
       contactType,
+      photo,
     });
+
     const newContact = await Contact.findById(contact._id).select('-__v');
     res.status(201).json({
       status: 201,
@@ -84,6 +88,12 @@ export const updateContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
     const updatedData = req.body;
+    const photo = req.file ? req.file.path : null;
+
+    if (photo) {
+      updatedData.photo = photo;
+    }
+
     const contact = await updateContact(contactId, updatedData);
     if (!contact) throw createError(404, 'Contact not found');
     const updatedContact = await Contact.findById(contactId).select('-__v');
