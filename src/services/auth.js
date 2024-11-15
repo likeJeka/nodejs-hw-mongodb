@@ -23,16 +23,22 @@ export const loginUser = async ({ email, password }) => {
     throw createHttpError(401, 'Invalid email or password');
   }
 
-  const accessToken = jwt.sign(
-    { userId: user._id },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: '15m' },
-  );
-  const refreshToken = jwt.sign(
-    { userId: user._id },
-    process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: '30d' },
-  );
+  const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+  const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
+
+  if (!accessTokenSecret || !refreshTokenSecret) {
+    throw createHttpError(
+      500,
+      'Server configuration error: token secrets are missing',
+    );
+  }
+
+  const accessToken = jwt.sign({ userId: user._id }, accessTokenSecret, {
+    expiresIn: '15m',
+  });
+  const refreshToken = jwt.sign({ userId: user._id }, refreshTokenSecret, {
+    expiresIn: '30d',
+  });
 
   await Session.findOneAndDelete({ userId: user._id });
 
@@ -54,11 +60,18 @@ export const refreshSession = async (refreshToken) => {
     throw createHttpError(401, 'Invalid or expired refresh token');
   }
 
-  const accessToken = jwt.sign(
-    { userId: session.userId },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: '15m' },
-  );
+  const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+
+  if (!accessTokenSecret) {
+    throw createHttpError(
+      500,
+      'Server configuration error: access token secret is missing',
+    );
+  }
+
+  const accessToken = jwt.sign({ userId: session.userId }, accessTokenSecret, {
+    expiresIn: '15m',
+  });
 
   await Session.findOneAndDelete({ userId: session.userId });
 
