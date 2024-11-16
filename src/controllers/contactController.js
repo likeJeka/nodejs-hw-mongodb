@@ -8,14 +8,14 @@ import {
 
 export const getContacts = async (req, res, next) => {
   try {
-    const userId = req.user._id; // Добавление фильтра по userId
+    const userId = req.user._id; 
     const page = parseInt(req.query.page) || 1;
     const perPage = parseInt(req.query.perPage) || 10;
     const sortBy = req.query.sortBy || 'name';
     const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
     const { type, isFavourite } = req.query;
 
-    const filter = { userId }; // Фильтр по userId для возврата только контактов текущего пользователя
+    const filter = { userId }; 
     if (type) filter.contactType = type;
     if (isFavourite) filter.isFavourite = isFavourite === 'true';
 
@@ -48,7 +48,7 @@ export const getContacts = async (req, res, next) => {
 export const getContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const userId = req.user._id; // Проверка принадлежности контакта пользователю
+    const userId = req.user._id;
     const contact = await Contact.findOne({ _id: contactId, userId }).select('-__v');
     if (!contact) throw createError(404, 'Contact not found');
     res.status(200).json({
@@ -63,7 +63,7 @@ export const getContactById = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
-    const userId = req.user._id; // Добавление userId при создании контакта
+    const userId = req.user._id; 
     const { name, phoneNumber, email, isFavourite, contactType } = req.body;
     const contact = await addContact({
       name,
@@ -87,7 +87,7 @@ export const createContact = async (req, res, next) => {
 export const updateContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const userId = req.user._id; // Проверка принадлежности контакта пользователю
+    const userId = req.user._id; 
     const updatedData = req.body;
     const contact = await updateContact(contactId, userId, updatedData);
     if (!contact) throw createError(404, 'Contact not found');
@@ -105,7 +105,7 @@ export const updateContactById = async (req, res, next) => {
 export const deleteContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const userId = req.user._id; // Проверка принадлежности контакта пользователю
+    const userId = req.user._id;
     const contact = await removeContact(contactId, userId);
     if (!contact) throw createError(404, 'Contact not found');
     res.status(204).end();
