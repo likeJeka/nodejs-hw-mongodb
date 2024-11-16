@@ -18,10 +18,10 @@ export const addContact = async (contactData) => {
     }
 };
 
-export const updateContact = async (contactId, updatedData, userId) => {
+export const updateContact = async (contactId, userId, updatedData) => {
     try {
         return await Contact.findOneAndUpdate(
-            { _id: contactId, userId },
+            { _id: contactId, userId }, // Добавлена проверка принадлежности контакта
             updatedData,
             { new: true }
         );
@@ -32,7 +32,7 @@ export const updateContact = async (contactId, updatedData, userId) => {
 
 export const removeContact = async (contactId, userId) => {
     try {
-        return await Contact.findOneAndDelete({ _id: contactId, userId });
+        return await Contact.findOneAndDelete({ _id: contactId, userId }); // Добавлена проверка принадлежности контакта
     } catch (error) {
         throw new Error('Error deleting contact');
     }

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import pino from 'pino';
+import cookieParser from 'cookie-parser'; // добавь этот импорт
 import contactRoutes from './routes/contactRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import errorHandler from './middlewares/errorHandler.js';
@@ -14,6 +15,7 @@ export const setupServer = () => {
 
   app.use(cors());
   app.use(express.json());
+  app.use(cookieParser()); // добавь эту строку
 
   app.use('/auth', authRoutes);
   app.use('/contacts', contactRoutes);

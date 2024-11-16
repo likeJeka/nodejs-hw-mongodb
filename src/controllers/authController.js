@@ -46,7 +46,7 @@ export const login = async (req, res, next) => {
 
 export const refreshSession = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const { refreshToken } = req.cookies;
     if (!refreshToken) {
       throw createHttpError(401, 'Refresh token missing');
     }
@@ -67,7 +67,7 @@ export const refreshSession = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const { refreshToken } = req.cookies;
     if (!refreshToken) {
       throw createHttpError(401, 'Refresh token missing');
     }

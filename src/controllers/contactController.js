@@ -8,13 +8,14 @@ import {
 
 export const getContacts = async (req, res, next) => {
   try {
+    const userId = req.user._id; // Добавление фильтра по userId
     const page = parseInt(req.query.page) || 1;
     const perPage = parseInt(req.query.perPage) || 10;
     const sortBy = req.query.sortBy || 'name';
     const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
     const { type, isFavourite } = req.query;
 
-    const filter = {};
+    const filter = { userId }; // Фильтр по userId для возврата только контактов текущего пользователя
     if (type) filter.contactType = type;
     if (isFavourite) filter.isFavourite = isFavourite === 'true';
 
@@ -47,7 +48,8 @@ export const getContacts = async (req, res, next) => {
 export const getContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contact = await Contact.findById(contactId).select('-__v');
+    const userId = req.user._id; // Проверка принадлежности контакта пользователю
+    const contact = await Contact.findOne({ _id: contactId, userId }).select('-__v');
     if (!contact) throw createError(404, 'Contact not found');
     res.status(200).json({
       status: 200,
@@ -61,6 +63,7 @@ export const getContactById = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
+    const userId = req.user._id; // Добавление userId при создании контакта
     const { name, phoneNumber, email, isFavourite, contactType } = req.body;
     const contact = await addContact({
       name,
@@ -68,6 +71,7 @@ export const createContact = async (req, res, next) => {
       email,
       isFavourite,
       contactType,
+      userId,
     });
     const newContact = await Contact.findById(contact._id).select('-__v');
     res.status(201).json({
@@ -83,8 +87,9 @@ export const createContact = async (req, res, next) => {
 export const updateContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
+    const userId = req.user._id; // Проверка принадлежности контакта пользователю
     const updatedData = req.body;
-    const contact = await updateContact(contactId, updatedData);
+    const contact = await updateContact(contactId, userId, updatedData);
     if (!contact) throw createError(404, 'Contact not found');
     const updatedContact = await Contact.findById(contactId).select('-__v');
     res.status(200).json({
@@ -100,7 +105,8 @@ export const updateContactById = async (req, res, next) => {
 export const deleteContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contact = await removeContact(contactId);
+    const userId = req.user._id; // Проверка принадлежности контакта пользователю
+    const contact = await removeContact(contactId, userId);
     if (!contact) throw createError(404, 'Contact not found');
     res.status(204).end();
   } catch (error) {
