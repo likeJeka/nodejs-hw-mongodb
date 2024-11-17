@@ -6,8 +6,13 @@ import contactRoutes from './routes/contactRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import errorHandler from './middlewares/errorHandler.js';
 import notFoundHandler from './middlewares/notFoundHandler.js';
+import swaggerUi from 'swagger-ui-express';
+import yaml from 'yamljs';
 
 const logger = pino();
+
+// Загрузка файла openapi.yaml
+const swaggerDocument = yaml.load('./docs/openapi.yaml');
 
 export const setupServer = () => {
   const app = express();
@@ -16,6 +21,9 @@ export const setupServer = () => {
   app.use(cors());
   app.use(express.json());
   app.use(cookieParser());
+
+  // Swagger документация
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   app.use('/auth', authRoutes);
   app.use('/contacts', contactRoutes);

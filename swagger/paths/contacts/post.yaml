@@ -1,0 +1,27 @@
+tags:
+  - Contacts
+summary: Create a new contact
+operationId: createContact
+description: Create a new contact for the authenticated user.
+security:
+  - bearerAuth: []
+requestBody:
+  description: The contact data to create.
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: '../../components/schemas/contact.yaml'
+responses:
+  '201':
+    description: Successfully created the contact.
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/contact.yaml'
+  '401':
+    description: Unauthorized. The user is not authenticated.
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/responses/contacts/401.yaml'
