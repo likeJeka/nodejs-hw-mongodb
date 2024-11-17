@@ -1,10 +1,10 @@
 import createHttpError from 'http-errors';
-import * as authService from '../services/auth.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../models/userModel.js';
 import Session from '../models/sessionModel.js';
 import nodemailer from 'nodemailer';
+import * as authService from '../services/auth.js';
 
 export const register = async (req, res, next) => {
   try {
@@ -39,7 +39,7 @@ export const login = async (req, res, next) => {
 
     res.status(200).json({
       status: 200,
-      message: 'Successfully logged in an user!',
+      message: 'Successfully logged in a user!',
       data: {
         accessToken,
       },
@@ -51,7 +51,7 @@ export const login = async (req, res, next) => {
 
 export const refreshSession = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const { refreshToken } = req.cookies;
     if (!refreshToken) {
       throw createHttpError(401, 'Refresh token missing');
     }
@@ -72,7 +72,7 @@ export const refreshSession = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const { refreshToken } = req.cookies;
     if (!refreshToken) {
       throw createHttpError(401, 'Refresh token missing');
     }
@@ -97,6 +97,7 @@ export const sendResetEmail = async (req, res, next) => {
     const token = jwt.sign({ email }, process.env.JWT_SECRET, {
       expiresIn: '5m',
     });
+    console.log('Generated Token:', token);
     const resetLink = `${process.env.APP_DOMAIN}/reset-password?token=${token}`;
 
     const transporter = nodemailer.createTransport({
@@ -116,24 +117,26 @@ export const sendResetEmail = async (req, res, next) => {
       text: `Click the link to reset your password: ${resetLink}`,
     };
 
-    await transporter.sendMail(mailOptions);
-
-    res.status(200).json({
-      status: 200,
-      message: 'Reset password email has been successfully sent.',
-      data: {},
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        next(
+          createHttpError(
+            500,
+            'Failed to send the email, please try again later.',
+          ),
+        );
+      } else {
+        console.log('Email sent:', info.response);
+        res.status(200).json({
+          status: 200,
+          message: 'Reset password email has been successfully sent.',
+          data: {},
+        });
+      }
     });
   } catch (error) {
-    if (error.response) {
-      next(
-        createHttpError(
-          500,
-          'Failed to send the email, please try again later.',
-        ),
-      );
-    } else {
-      next(error);
-    }
+    next(error);
   }
 };
 
@@ -141,7 +144,6 @@ export const resetPassword = async (req, res, next) => {
   try {
     const { token, password } = req.body;
 
-    // Проверка валидности токена
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -155,14 +157,11 @@ export const resetPassword = async (req, res, next) => {
       throw createHttpError(404, 'User not found!');
     }
 
-    // Хэшируем новый пароль
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Обновляем пароль пользователя
     user.password = hashedPassword;
     await user.save();
 
-    // Удаляем все текущие сессии пользователя
     await Session.deleteMany({ userId: user._id });
 
     res.status(200).json({
