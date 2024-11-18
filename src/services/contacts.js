@@ -18,7 +18,7 @@ export const addContact = async (contactData) => {
     }
 };
 
-export const updateContact = async (contactId, updatedData, userId) => {
+export const updateContact = async (contactId, userId, updatedData) => {
     try {
         return await Contact.findOneAndUpdate(
             { _id: contactId, userId },
