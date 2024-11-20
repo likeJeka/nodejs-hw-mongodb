@@ -1,59 +1,96 @@
 tags:
   - Contacts
-summary: Get all contacts
+summary: Get list of contacts
 operationId: getAllContacts
-description: Retrieve a list of all contacts for the authenticated user.
+description: 'Get list of contacts. You can get access only to contacts added by you'
 security:
   - bearerAuth: []
 parameters:
-  - name: page
-    in: query
-    description: The page number for pagination.
-    required: false
+  - in: query
+    name: page
     schema:
       type: integer
-  - name: perPage
-    in: query
-    description: The number of contacts per page.
-    required: false
+    example: 1
+  - in: query
+    name: perPage
     schema:
       type: integer
-  - name: sortBy
-    in: query
-    description: The field to sort by.
-    required: false
+      example: 10
+  - in: query
+    name: sortBy
     schema:
       type: string
-  - name: sortOrder
-    in: query
-    description: The sort order (asc or desc).
-    required: false
+      example: 'name'
+    description: "All contact's fields can be mentioned. Default value - name"
+  - in: query
+    name: sortOrder
     schema:
       type: string
-  - name: type
-    in: query
-    description: Filter contacts by type.
-    required: false
-    schema:
-      type: string
-  - name: isFavourite
-    in: query
-    description: Filter contacts by favourite status.
-    required: false
+      enum: ['asc', 'desc']
+      example: 'asc'
+  - in: query
+    name: isFavourite
     schema:
       type: boolean
+      example: false
+  - in: query
+    name: contactType
+    schema:
+      type: string
+      enum: ['work', 'home', 'personal']
+      example: home
+
 responses:
   '200':
-    description: Successfully retrieved the list of contacts.
+    description: Successfully found contacts!
     content:
       application/json:
         schema:
-          type: array
-          items:
-            $ref: '../../components/schemas/contact.yaml'
+          type: object
+          required:
+            - status
+            - message
+            - data
+          properties:
+            status:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: Successfully found contacts!
+            data:
+              type: object
+              required:
+                - data
+                - page
+                - perPage
+                - totalItems
+                - totalPages
+                - hasPreviousPage
+                - hasNextPage
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: ../../components/schemas/contact.yaml
+                page:
+                  type: number
+                  example: 2
+                perPage:
+                  type: number
+                  example: 4
+                totalItems:
+                  type: number
+                  example: 4
+                totalPages:
+                  type: number
+                  example: 4
+                hasPreviousPage:
+                  type: boolean
+                  example: true
+                hasNextPage:
+                  type: boolean
+                  example: false
+
   '401':
-    description: Unauthorized. The user is not authenticated.
-    content:
-      application/json:
-        schema:
-          $ref: '../../components/responses/contacts/401.yaml'
+    $ref: ../../components/responses/contacts/401.yaml
