@@ -7,12 +7,14 @@ import authRoutes from './routes/authRoutes.js';
 import errorHandler from './middlewares/errorHandler.js';
 import notFoundHandler from './middlewares/notFoundHandler.js';
 import swaggerUi from 'swagger-ui-express';
-import yaml from 'yamljs';
+import fs from 'node:fs';
 
 const logger = pino();
 
-// Загрузка файла openapi.yaml
-const swaggerDocument = yaml.load('./docs/openapi.yaml');
+// Загрузка файла swagger.json
+const swaggerDocument = JSON.parse(
+  fs.readFileSync('./docs/swagger.json').toString()
+);
 
 export const setupServer = () => {
   const app = express();
