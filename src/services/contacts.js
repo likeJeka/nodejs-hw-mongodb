@@ -1,8 +1,8 @@
 import Contact from '../models/contactModel.js';
 
-export const getAllContacts = async () => {
+export const getAllContacts = async (userId) => {
     try {
-        const contacts = await Contact.find(); 
+        const contacts = await Contact.find({ userId });
         return contacts;
     } catch (error) {
         throw new Error('Error fetching contacts');
@@ -18,10 +18,10 @@ export const addContact = async (contactData) => {
     }
 };
 
-export const updateContact = async (contactId, updatedData) => {
+export const updateContact = async (contactId, updatedData, userId) => {
     try {
-        return await Contact.findByIdAndUpdate(
-            contactId, 
+        return await Contact.findOneAndUpdate(
+            { _id: contactId, userId },
             updatedData,
             { new: true }
         );
@@ -30,9 +30,9 @@ export const updateContact = async (contactId, updatedData) => {
     }
 };
 
-export const removeContact = async (contactId) => {
+export const removeContact = async (contactId, userId) => {
     try {
-        return await Contact.findByIdAndDelete(contactId); 
+        return await Contact.findOneAndDelete({ _id: contactId, userId });
     } catch (error) {
         throw new Error('Error deleting contact');
     }

@@ -1,13 +1,11 @@
 import Contact from '../models/contactModel.js';
 import createError from 'http-errors';
-import {
-  addContact,
-  updateContact,
-  removeContact,
-} from '../services/contacts.js';
+import mongoose from 'mongoose'; // Для проверки и работы с ObjectId
 
+// Получить все контакты
 export const getContacts = async (req, res, next) => {
   try {
+    const userId = req.user ? req.user._id : null; // Если авторизация используется
     const page = parseInt(req.query.page) || 1;
     const perPage = parseInt(req.query.perPage) || 10;
     const sortBy = req.query.sortBy || 'name';
@@ -15,6 +13,7 @@ export const getContacts = async (req, res, next) => {
     const { type, isFavourite } = req.query;
 
     const filter = {};
+    if (userId) filter.userId = userId; // Учитываем userId, если передан
     if (type) filter.contactType = type;
     if (isFavourite) filter.isFavourite = isFavourite === 'true';
 
@@ -25,8 +24,6 @@ export const getContacts = async (req, res, next) => {
       .skip((page - 1) * perPage)
       .limit(perPage)
       .sort({ [sortBy]: sortOrder });
-
-    console.log('Contacts found:', contacts.length);
 
     res.status(200).json({
       status: 200,
@@ -42,16 +39,18 @@ export const getContacts = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Error in getContacts:', error);
     next(error);
   }
 };
 
+// Получить контакт по ID
 export const getContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
 
-    console.log('Get Contact by ID:', { contactId });
+    if (!mongoose.Types.ObjectId.isValid(contactId)) {
+      throw createError(400, 'Некорректный ID');
+    }
 
     const contact = await Contact.findById(contactId).select('-__v');
     if (!contact) throw createError(404, 'Контакт не найден');
@@ -62,88 +61,82 @@ export const getContactById = async (req, res, next) => {
       data: contact,
     });
   } catch (error) {
-    console.error('Error in getContactById:', error);
     next(error);
   }
 };
 
+// Создать новый контакт
 export const createContact = async (req, res, next) => {
   try {
+    const userId = req.user ? req.user._id : null; // Если используется авторизация
     const { name, phoneNumber, email, isFavourite, contactType } = req.body;
     const photo = req.file ? req.file.path : null;
 
-    console.log('Creating contact:', {
+    const contactData = {
       name,
       phoneNumber,
       email,
       isFavourite,
       contactType,
       photo,
-    });
+    };
 
-    const contact = await addContact({
-      name,
-      phoneNumber,
-      email,
-      isFavourite,
-      contactType,
-      photo,
-    });
+    if (userId) contactData.userId = userId;
 
-    const newContact = await Contact.findById(contact._id).select('-__v');
+    const contact = new Contact(contactData);
+    await contact.save();
 
     res.status(201).json({
       status: 201,
       message: 'Контакт успешно создан!',
-      data: newContact,
+      data: contact,
     });
   } catch (error) {
-    console.error('Error in createContact:', error);
     next(error);
   }
 };
 
+// Обновить контакт по ID
 export const updateContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const updatedData = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(contactId)) {
+      throw createError(400, 'Некорректный ID');
+    }
+
+    const updatedData = req.body;
     if (req.file) {
       updatedData.photo = req.file.path;
     }
 
-    console.log('Updating contact:', { contactId, updatedData });
-
-    const contact = await updateContact(contactId, updatedData);
+    const contact = await Contact.findByIdAndUpdate(contactId, updatedData, { new: true });
     if (!contact) throw createError(404, 'Контакт не найден');
-
-    const updatedContact = await Contact.findById(contactId).select('-__v');
 
     res.status(200).json({
       status: 200,
       message: 'Контакт успешно обновлен!',
-      data: updatedContact,
+      data: contact,
     });
   } catch (error) {
-    console.error('Error in updateContactById:', error);
     next(error);
   }
 };
 
+// Удалить контакт по ID
 export const deleteContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
 
-    console.log('Deleting contact:', { contactId });
+    if (!mongoose.Types.ObjectId.isValid(contactId)) {
+      throw createError(400, 'Некорректный ID');
+    }
 
     const contact = await Contact.findByIdAndDelete(contactId);
-    console.log('Contact found for deletion:', contact);
-
     if (!contact) throw createError(404, 'Контакт не найден');
 
     res.status(204).end();
   } catch (error) {
-    console.error('Error in deleteContactById:', error);
     next(error);
   }
 };
