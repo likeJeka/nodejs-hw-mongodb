@@ -8,14 +8,13 @@ import {
 
 export const getContacts = async (req, res, next) => {
   try {
-    const userId = req.user._id;
     const page = parseInt(req.query.page) || 1;
     const perPage = parseInt(req.query.perPage) || 10;
     const sortBy = req.query.sortBy || 'name';
     const sortOrder = req.query.sortOrder === 'desc' ? -1 : 1;
     const { type, isFavourite } = req.query;
 
-    const filter = { userId };
+    const filter = {};
     if (type) filter.contactType = type;
     if (isFavourite) filter.isFavourite = isFavourite === 'true';
 
@@ -26,6 +25,8 @@ export const getContacts = async (req, res, next) => {
       .skip((page - 1) * perPage)
       .limit(perPage)
       .sort({ [sortBy]: sortOrder });
+
+    console.log('Contacts found:', contacts.length);
 
     res.status(200).json({
       status: 200,
@@ -41,6 +42,7 @@ export const getContacts = async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.error('Error in getContacts:', error);
     next(error);
   }
 };
@@ -48,10 +50,10 @@ export const getContacts = async (req, res, next) => {
 export const getContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const userId = req.user._id;
-    const contact = await Contact.findOne({ _id: contactId, userId }).select(
-      '-__v',
-    );
+
+    console.log('Get Contact by ID:', { contactId });
+
+    const contact = await Contact.findById(contactId).select('-__v');
     if (!contact) throw createError(404, 'Контакт не найден');
 
     res.status(200).json({
@@ -60,15 +62,24 @@ export const getContactById = async (req, res, next) => {
       data: contact,
     });
   } catch (error) {
+    console.error('Error in getContactById:', error);
     next(error);
   }
 };
 
 export const createContact = async (req, res, next) => {
   try {
-    const userId = req.user._id;
     const { name, phoneNumber, email, isFavourite, contactType } = req.body;
     const photo = req.file ? req.file.path : null;
+
+    console.log('Creating contact:', {
+      name,
+      phoneNumber,
+      email,
+      isFavourite,
+      contactType,
+      photo,
+    });
 
     const contact = await addContact({
       name,
@@ -77,7 +88,6 @@ export const createContact = async (req, res, next) => {
       isFavourite,
       contactType,
       photo,
-      userId,
     });
 
     const newContact = await Contact.findById(contact._id).select('-__v');
@@ -88,6 +98,7 @@ export const createContact = async (req, res, next) => {
       data: newContact,
     });
   } catch (error) {
+    console.error('Error in createContact:', error);
     next(error);
   }
 };
@@ -95,14 +106,15 @@ export const createContact = async (req, res, next) => {
 export const updateContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const userId = req.user._id;
     const updatedData = req.body;
 
     if (req.file) {
       updatedData.photo = req.file.path;
     }
 
-    const contact = await updateContact(contactId, userId, updatedData);
+    console.log('Updating contact:', { contactId, updatedData });
+
+    const contact = await updateContact(contactId, updatedData);
     if (!contact) throw createError(404, 'Контакт не найден');
 
     const updatedContact = await Contact.findById(contactId).select('-__v');
@@ -113,6 +125,7 @@ export const updateContactById = async (req, res, next) => {
       data: updatedContact,
     });
   } catch (error) {
+    console.error('Error in updateContactById:', error);
     next(error);
   }
 };
@@ -120,13 +133,17 @@ export const updateContactById = async (req, res, next) => {
 export const deleteContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const userId = req.user._id;
 
-    const contact = await removeContact(contactId, userId);
+    console.log('Deleting contact:', { contactId });
+
+    const contact = await Contact.findByIdAndDelete(contactId);
+    console.log('Contact found for deletion:', contact);
+
     if (!contact) throw createError(404, 'Контакт не найден');
 
     res.status(204).end();
   } catch (error) {
+    console.error('Error in deleteContactById:', error);
     next(error);
   }
 };
